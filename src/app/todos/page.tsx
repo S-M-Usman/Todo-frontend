@@ -43,6 +43,59 @@ interface Todo {
   updatedAt: string
 }
 
+type PartialTodo = {
+  _id?: string
+  id?: string
+  userId?: string
+  title?: string
+  completed?: boolean
+  createdAt?: string
+  updatedAt?: string
+}
+
+const normalizeTodo = (todo: PartialTodo | null | undefined): Todo => {
+  // If todo is undefined or null, return a default todo object
+  if (!todo) {
+    return {
+      _id: `temp-${Date.now()}`, // Generate a temporary ID
+      userId: "",
+      title: "",
+      completed: false,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
+  }
+
+  return {
+    _id: todo._id || todo.id || `temp-${Date.now()}`,
+    userId: todo.userId || "",
+    title: todo.title || "",
+    completed: typeof todo.completed === "boolean" ? todo.completed : false,
+    createdAt: todo.createdAt || new Date().toISOString(),
+    updatedAt: todo.updatedAt || new Date().toISOString(),
+  }
+}
+
+interface ApiResponse {
+  data?: PartialTodo[] | { data?: PartialTodo[] }
+}
+
+const extractTodosFromResponse = (response: ApiResponse): PartialTodo[] => {
+  // Check if response has data property directly containing the todos array
+  if (response && Array.isArray(response.data)) {
+    return response.data
+  }
+
+  // Check if response.data has data property containing the todos array
+  if (response && response.data && Array.isArray((response.data as { data?: PartialTodo[] }).data)) {
+    return (response.data as { data?: PartialTodo[] }).data || []
+  }
+
+  // If we can't find the todos array, log the response and return empty array
+  console.warn("Unexpected API response format:", response)
+  return []
+}
+
 export default function TodosPage() {
   const router = useRouter()
   const [todos, setTodos] = useState<Todo[]>([])
@@ -70,47 +123,6 @@ export default function TodosPage() {
       fetchTodos()
     }
   }, [router])
-
-  // Normalize todo data to ensure it has all required properties
-  const normalizeTodo = (todo: any): Todo => {
-    // If todo is undefined or null, return a default todo object
-    if (!todo) {
-      return {
-        _id: `temp-${Date.now()}`, // Generate a temporary ID
-        userId: "",
-        title: "",
-        completed: false,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      }
-    }
-
-    return {
-      _id: todo._id || todo.id || `temp-${Date.now()}`,
-      userId: todo.userId || "",
-      title: todo.title || "",
-      completed: typeof todo.completed === "boolean" ? todo.completed : false,
-      createdAt: todo.createdAt || new Date().toISOString(),
-      updatedAt: todo.updatedAt || new Date().toISOString(),
-    }
-  }
-
-  // Extract todos from API response
-  const extractTodosFromResponse = (response: any): any[] => {
-    // Check if response has data property directly containing the todos array
-    if (response && Array.isArray(response.data)) {
-      return response.data
-    }
-
-    // Check if response.data has data property containing the todos array
-    if (response && response.data && Array.isArray(response.data.data)) {
-      return response.data.data
-    }
-
-    // If we can't find the todos array, log the response and return empty array
-    console.warn("Unexpected API response format:", response)
-    return []
-  }
 
   // Fetch todos from API
   const fetchTodos = async () => {
@@ -158,7 +170,7 @@ export default function TodosPage() {
       setTodos([newTodoData, ...todos])
       setNewTodo("")
       toast.success("Todo created successfully!")
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to create todo:", error)
 
       // Create a temporary todo with the title
