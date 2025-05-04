@@ -157,7 +157,7 @@ export default function TodosPage() {
     try {
       const token = localStorage.getItem("token")
       const response = await axios.post(
-        "http://localhost:5500/api/v1/todos",
+        "https://todo-backend-1dzp.onrender.com/api/v1/todos",
         { title: newTodo },
         { headers: { Authorization: `Bearer ${token}` } },
       )
@@ -206,7 +206,7 @@ export default function TodosPage() {
     try {
       const token = localStorage.getItem("token")
       const response = await axios.put(
-        `http://localhost:5500/api/v1/todos/${editTodo._id}`,
+        `https://todo-backend-1dzp.onrender.com/api/v1/todos/${editTodo._id}`,
         { title: editTitle, completed: editCompleted },
         { headers: { Authorization: `Bearer ${token}` } },
       )
@@ -250,7 +250,7 @@ export default function TodosPage() {
 
     try {
       const token = localStorage.getItem("token")
-      await axios.delete(`http://localhost:5500/api/v1/todos/${todoToDelete}`, {
+      await axios.delete(`https://todo-backend-1dzp.onrender.com/api/v1/todos/${todoToDelete}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
 
@@ -348,7 +348,7 @@ export default function TodosPage() {
                               try {
                                 const token = localStorage.getItem("token")
                                 const response = await axios.put(
-                                  `http://localhost:5500/api/v1/todos/${todo._id}`,
+                                  `https://todo-backend-1dzp.onrender.com/api/v1/todos/${todo._id}`,
                                   { completed: !!checked },
                                   { headers: { Authorization: `Bearer ${token}` } },
                                 )
