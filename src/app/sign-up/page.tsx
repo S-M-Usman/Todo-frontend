@@ -13,10 +13,11 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2 } from "lucide-react"
 import Link from "next/link"
 
-export default function SignInPage() {
-  const [form, setForm] = useState({ email: "", password: "" })
+export default function SignUpPage() {
+  const [form, setForm] = useState({ name: "", email: "", password: "" })
   const [loading, setLoading] = useState(false)
-  const [errorMsg, setErrorMsg] = useState("")
+  const [message, setMessage] = useState("")
+  const [error, setError] = useState("")
   const router = useRouter()
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -26,21 +27,23 @@ export default function SignInPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    setErrorMsg("")
+    setMessage("")
+    setError("")
 
     try {
-      const response = await axios.post("https://todo-backend-1dzp.onrender.com/api/v1/users/sign-in", form)
+      const res = await axios.post("https://todo-backend-1dzp.onrender.com/api/v1/users/sign-up", form)
 
-      const { token, user } = response.data.data
+      const token = res.data.data.token
+      localStorage.setItem("token", token) // or use cookies
 
-      // Save token to localStorage
-      localStorage.setItem("token", token)
-      localStorage.setItem("user", JSON.stringify(user)) // Optional
+      setMessage("Signup successful! Redirecting...")
+      setForm({ name: "", email: "", password: "" })
 
-      // Redirect to /todos
-      router.push("/todos")
+      setTimeout(() => {
+        router.push("/todos") // redirect to your todo page
+      }, 1500)
     } catch (err: any) {
-      setErrorMsg(err?.response?.data?.message || "Sign-in failed")
+      setError(err?.response?.data?.message || "Signup failed")
     } finally {
       setLoading(false)
     }
@@ -50,16 +53,35 @@ export default function SignInPage() {
     <main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-slate-50 to-slate-100 p-4">
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Welcome back</CardTitle>
-          <CardDescription className="text-center">Enter your credentials to access your account</CardDescription>
+          <CardTitle className="text-2xl font-bold text-center">Create an account</CardTitle>
+          <CardDescription className="text-center">Enter your information to get started</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            {errorMsg && (
-              <Alert variant="destructive" className="text-sm font-medium">
-                <AlertDescription>{errorMsg}</AlertDescription>
+            {message && (
+              <Alert className="bg-green-50 text-green-700 border-green-200">
+                <AlertDescription>{message}</AlertDescription>
               </Alert>
             )}
+
+            {error && (
+              <Alert variant="destructive" className="text-sm font-medium">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
+            <div className="space-y-2">
+              <Label htmlFor="name">Full Name</Label>
+              <Input
+                id="name"
+                name="name"
+                value={form.name}
+                onChange={handleChange}
+                placeholder="John Doe"
+                required
+                className="w-full"
+              />
+            </div>
 
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
@@ -76,12 +98,7 @@ export default function SignInPage() {
             </div>
 
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
-                <Link href="/forgot-password" className="text-xs text-slate-500 hover:text-slate-800 transition-colors">
-                  Forgot password?
-                </Link>
-              </div>
+              <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
                 name="password"
@@ -92,25 +109,26 @@ export default function SignInPage() {
                 required
                 className="w-full"
               />
+              <p className="text-xs text-slate-500">Password must be at least 8 characters</p>
             </div>
 
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Signing in...
+                  Creating account...
                 </>
               ) : (
-                "Sign In"
+                "Sign Up"
               )}
             </Button>
           </form>
         </CardContent>
         <CardFooter className="flex flex-col space-y-4 border-t p-6 pt-4">
           <div className="text-center text-sm">
-            Don't have an account?{" "}
-            <Link href="/sign-up" className="font-medium text-primary hover:underline">
-              Sign up
+            Already have an account?{" "}
+            <Link href="/sign-in" className="font-medium text-primary hover:underline">
+              Sign in
             </Link>
           </div>
         </CardFooter>
