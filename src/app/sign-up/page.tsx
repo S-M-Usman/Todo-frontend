@@ -1,10 +1,9 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import axios from "axios"
+import axios, { type AxiosError } from "axios"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,6 +11,10 @@ import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2 } from "lucide-react"
 import Link from "next/link"
+
+interface ApiErrorResponse {
+  message: string
+}
 
 export default function SignUpPage() {
   const [form, setForm] = useState({ name: "", email: "", password: "" })
@@ -42,8 +45,9 @@ export default function SignUpPage() {
       setTimeout(() => {
         router.push("/todos") // redirect to your todo page
       }, 1500)
-    } catch (err: any) {
-      setError(err?.response?.data?.message || "Signup failed")
+    } catch (err) {
+      const axiosError = err as AxiosError<ApiErrorResponse>
+      setError(axiosError.response?.data?.message || "Signup failed")
     } finally {
       setLoading(false)
     }
