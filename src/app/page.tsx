@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import axios from "axios"
+import axios, { type AxiosError } from "axios"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,6 +12,13 @@ import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2 } from "lucide-react"
 import Link from "next/link"
+
+interface ApiErrorResponse {
+  message?: string
+  data?: {
+    message?: string
+  }
+}
 
 export default function SignInPage() {
   const [form, setForm] = useState({ email: "", password: "" })
@@ -39,8 +46,9 @@ export default function SignInPage() {
 
       // Redirect to /todos
       router.push("/todos")
-    } catch (err: any) {
-      setErrorMsg(err?.response?.data?.message || "Sign-in failed")
+    } catch (err: unknown) {
+      const error = err as AxiosError<ApiErrorResponse>
+      setErrorMsg(error.response?.data?.message || "Sign-in failed")
     } finally {
       setLoading(false)
     }
